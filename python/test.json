@@ -1,0 +1,13 @@
+{
+ "filesystem": {
+  "Used": "37Gi", 
+  "Capacity": "8%", 
+  "%iused": "8%", 
+  "iused": "9676612", 
+  "Avail": "428Gi", 
+  "Filesystem": "/dev/disk1", 
+  "Mounted": "/", 
+  "ifree": "112169696", 
+  "Size": "465Gi"
+ }
+}
