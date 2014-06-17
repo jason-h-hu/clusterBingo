@@ -1,13 +1,121 @@
 {
- "filesystem": {
-  "Used": "37Gi", 
-  "Capacity": "8%", 
-  "%iused": "8%", 
-  "iused": "9676612", 
-  "Avail": "428Gi", 
-  "Filesystem": "/dev/disk1", 
-  "Mounted": "/", 
-  "ifree": "112169696", 
-  "Size": "465Gi"
+ "ec2-user@ec2-54-213-114-106.us-west-2.compute.amazonaws.com": {
+  "journaling": {
+   "Filesystem features": [
+    "has_journal", 
+    "ext_attr", 
+    "resize_inode", 
+    "dir_index", 
+    "filetype", 
+    "needs_recovery", 
+    "extent", 
+    "flex_bg", 
+    "sparse_super", 
+    "large_file", 
+    "huge_file", 
+    "uninit_bg", 
+    "dir_nlink", 
+    "extra_isize"
+   ], 
+   "Journal features": [
+    "journal_incompat_revoke"
+   ]
+  }, 
+  "java": [
+   "java version 1.7.0_55", 
+   "OpenJDK Runtime Environment amzn-2.4.7.1.40.amzn1-x86_64 u55-b13", 
+   "OpenJDK 64-Bit Server VM build 24.51-b03, mixed mode", 
+   ""
+  ], 
+  "IOplanner": [
+   "noop", 
+   ""
+  ], 
+  "ports": [
+   {
+    "COMMAND": "dhclient", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "ntpd", 
+    "USER": "ntp"
+   }, 
+   {
+    "COMMAND": "ntpd", 
+    "USER": "ntp"
+   }, 
+   {
+    "COMMAND": "ntpd", 
+    "USER": "ntp"
+   }, 
+   {
+    "COMMAND": "sendmail", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "ec2-user"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "sshd", 
+    "USER": "ec2-user"
+   }
+  ], 
+  "blockdev": [
+   {
+    "Device": "/dev/xvda1", 
+    "RA": "256"
+   }, 
+   {
+    "Device": "/dev/xvdb", 
+    "RA": "256"
+   }
+  ], 
+  "filesystem": [
+   {
+    "Mounted": "/", 
+    "Size": "7.8G", 
+    "Filesystem": "/dev/xvda1"
+   }, 
+   {
+    "Mounted": "/dev", 
+    "Size": "15G", 
+    "Filesystem": "devtmpfs"
+   }, 
+   {
+    "Mounted": "/dev/shm", 
+    "Size": "15G", 
+    "Filesystem": "tmpfs"
+   }
+  ], 
+  "raid": {
+   "unused devices": [
+    "none"
+   ], 
+   "Personalities ": [
+    "raid6", 
+    "raid5", 
+    "raid4"
+   ]
+  }, 
+  "largePages": {
+   "Hugepagesize": "2048 kB"
+  }
  }
 }
