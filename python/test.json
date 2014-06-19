@@ -1,5 +1,15 @@
 {
- "ec2-user@ec2-54-213-114-106.us-west-2.compute.amazonaws.com": {
+ "ubuntu@ec2-54-200-38-213.us-west-2.compute.amazonaws.com": {
+  "kernel": [
+   "3.13.0-24-generic", 
+   ""
+  ], 
+  "raid": {
+   "Personalities": [], 
+   "unused devices": [
+    "none"
+   ]
+  }, 
   "journaling": {
    "Filesystem features": [
     "has_journal", 
@@ -21,17 +31,215 @@
     "journal_incompat_revoke"
    ]
   }, 
-  "java": [
-   "java version 1.7.0_55", 
-   "OpenJDK Runtime Environment amzn-2.4.7.1.40.amzn1-x86_64 u55-b13", 
-   "OpenJDK 64-Bit Server VM build 24.51-b03, mixed mode", 
+  "python": [
+   "Python 2.7.6", 
    ""
   ], 
   "IOplanner": [
-   "noop", 
+   "noop deadline cfq", 
+   "noop deadline cfq", 
    ""
   ], 
+  "userProcessLimit": [
+   "unlimited", 
+   ""
+  ], 
+  "filesystem": [
+   {
+    "Available": "6912228", 
+    "Use%": "11%", 
+    "Used": "777840", 
+    "1K-blocks": "8125880", 
+    "Filesystem": "/dev/xvda1", 
+    "Mounted": "/", 
+    "Type": "ext4"
+   }, 
+   {
+    "Available": "4", 
+    "Use%": "0%", 
+    "Used": "0", 
+    "1K-blocks": "4", 
+    "Filesystem": "none", 
+    "Mounted": "/sys/fs/cgroup", 
+    "Type": "tmpfs"
+   }, 
+   {
+    "Available": "290468", 
+    "Use%": "1%", 
+    "Used": "12", 
+    "1K-blocks": "290480", 
+    "Filesystem": "udev", 
+    "Mounted": "/dev", 
+    "Type": "devtmpfs"
+   }, 
+   {
+    "Available": "60092", 
+    "Use%": "1%", 
+    "Used": "188", 
+    "1K-blocks": "60280", 
+    "Filesystem": "tmpfs", 
+    "Mounted": "/run", 
+    "Type": "tmpfs"
+   }, 
+   {
+    "Available": "5120", 
+    "Use%": "0%", 
+    "Used": "0", 
+    "1K-blocks": "5120", 
+    "Filesystem": "none", 
+    "Mounted": "/run/lock", 
+    "Type": "tmpfs"
+   }, 
+   {
+    "Available": "301384", 
+    "Use%": "0%", 
+    "Used": "0", 
+    "1K-blocks": "301384", 
+    "Filesystem": "none", 
+    "Mounted": "/run/shm", 
+    "Type": "tmpfs"
+   }, 
+   {
+    "Available": "102400", 
+    "Use%": "0%", 
+    "Used": "0", 
+    "1K-blocks": "102400", 
+    "Filesystem": "none", 
+    "Mounted": "/run/user", 
+    "Type": "tmpfs"
+   }
+  ], 
+  "largePages": {
+   "Hugepagesize": "2048 kB", 
+   "AnonHugePages": "0 kB", 
+   "HugePages_Free": "0", 
+   "HugePages_Surp": "0", 
+   "HugePages_Rsvd": "0", 
+   "HugePages_Total": "0"
+  }, 
+  "blockdev": [
+   {
+    "Device": "/dev/xvda1", 
+    "RA": "256"
+   }, 
+   {
+    "Device": "/dev/xvdb", 
+    "RA": "256"
+   }
+  ], 
+  "spaceSwap": [
+   "Filename Type Size Used Priority", 
+   ""
+  ], 
+  "memory": {
+   "WritebackTmp": "0 kB", 
+   "SwapTotal": "0 kB", 
+   "SwapFree": "0 kB", 
+   "DirectMap4k": "637952 kB", 
+   "KernelStack": "536 kB", 
+   "MemFree": "376744 kB", 
+   "HugePages_Rsvd": "0", 
+   "Committed_AS": "45128 kB", 
+   "SUnreclaim": "6220 kB", 
+   "NFS_Unstable": "0 kB", 
+   "VmallocChunk": "34359730971 kB", 
+   "Writeback": "0 kB", 
+   "MemTotal": "602768 kB", 
+   "VmallocUsed": "2164 kB", 
+   "HugePages_Free": "0", 
+   "AnonHugePages": "0 kB", 
+   "Inactive": "128524 kB", 
+   "Active": "68612 kB", 
+   "Inactiveanon": "172 kB", 
+   "Activefile": "58352 kB", 
+   "CommitLimit": "301384 kB", 
+   "Hugepagesize": "2048 kB", 
+   "Cached": "179288 kB", 
+   "SwapCached": "0 kB", 
+   "VmallocTotal": "34359738367 kB", 
+   "Inactivefile": "128352 kB", 
+   "Activeanon": "10260 kB", 
+   "Shmem": "208 kB", 
+   "Mapped": "5436 kB", 
+   "Unevictable": "0 kB", 
+   "SReclaimable": "13320 kB", 
+   "Mlocked": "0 kB", 
+   "DirectMap2M": "0 kB", 
+   "HugePages_Surp": "0", 
+   "Bounce": "0 kB", 
+   "AnonPages": "10256 kB", 
+   "PageTables": "1724 kB", 
+   "HardwareCorrupted": "0 kB", 
+   "HugePages_Total": "0", 
+   "Slab": "19540 kB", 
+   "Buffers": "7620 kB", 
+   "Dirty": "88 kB"
+  }, 
+  "ssd": [
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "1", 
+   "0", 
+   "0", 
+   ""
+  ], 
+  "cpu": {
+   "cpu cores": "1", 
+   "bogomips": "3591.34", 
+   "core id": "0", 
+   "apicid": "0", 
+   "fpu_exception": "yes", 
+   "stepping": "7", 
+   "cache_alignment": "64", 
+   "clflush size": "64", 
+   "microcode": "0x70d", 
+   "cache size": "20480 KB", 
+   "cpuid level": "13", 
+   "fpu": "yes", 
+   "model name": "IntelR XeonR CPU E5-2650 0 @ 2.00GHz", 
+   "siblings": "1", 
+   "physical id": "0", 
+   "address sizes": "46 bits physical, 48 bits virtual", 
+   "cpu family": "6", 
+   "vendor_id": "GenuineIntel", 
+   "wp": "yes", 
+   "power management": "", 
+   "flags": "fpu de tsc msr pae cx8 apic sep cmov pat clflush mmx fxsr sse sse2 ss ht syscall nx lm constant_tsc rep_good nopl nonstop_tsc pni pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 popcnt tsc_deadline_timer aes avx hypervisor lahf_lm", 
+   "cpu MHz": "1795.672", 
+   "model": "45", 
+   "processor": "0", 
+   "initial apicid": "0"
+  }, 
   "ports": [
+   {
+    "COMMAND": "dhclient", 
+    "USER": "root"
+   }, 
+   {
+    "COMMAND": "dhclient", 
+    "USER": "root"
+   }, 
    {
     "COMMAND": "dhclient", 
     "USER": "root"
@@ -45,77 +253,13 @@
     "USER": "root"
    }, 
    {
-    "COMMAND": "ntpd", 
-    "USER": "ntp"
-   }, 
-   {
-    "COMMAND": "ntpd", 
-    "USER": "ntp"
-   }, 
-   {
-    "COMMAND": "ntpd", 
-    "USER": "ntp"
-   }, 
-   {
-    "COMMAND": "sendmail", 
-    "USER": "root"
-   }, 
-   {
     "COMMAND": "sshd", 
     "USER": "root"
    }, 
    {
     "COMMAND": "sshd", 
-    "USER": "ec2-user"
-   }, 
-   {
-    "COMMAND": "sshd", 
-    "USER": "root"
-   }, 
-   {
-    "COMMAND": "sshd", 
-    "USER": "ec2-user"
+    "USER": "ubuntu"
    }
-  ], 
-  "blockdev": [
-   {
-    "Device": "/dev/xvda1", 
-    "RA": "256"
-   }, 
-   {
-    "Device": "/dev/xvdb", 
-    "RA": "256"
-   }
-  ], 
-  "filesystem": [
-   {
-    "Mounted": "/", 
-    "Size": "7.8G", 
-    "Filesystem": "/dev/xvda1"
-   }, 
-   {
-    "Mounted": "/dev", 
-    "Size": "15G", 
-    "Filesystem": "devtmpfs"
-   }, 
-   {
-    "Mounted": "/dev/shm", 
-    "Size": "15G", 
-    "Filesystem": "tmpfs"
-   }
-  ], 
-  "raid": {
-   "unused devices": [
-    "none"
-   ], 
-   "Personalities ": [
-    "raid6", 
-    "raid5", 
-    "raid4"
-   ]
-  }, 
-  "largePages": {
-   "Hugepagesize": "2048 kB"
-  }
+  ]
  }
 }

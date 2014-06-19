@@ -1,4 +1,23 @@
 #! /usr/bin/python
+"""
+CLUSTER BINGO
+version 0.0
+
+ClusterBingo's goal is to ensure that multiple machines are running similar configurations, in regard to java version, read ahead size, filesystem, etc. Most of these parameters can be done by hand via various shell commands, but this would entail connecting to all the various machines to check, which would be tedious and error prone. 
+
+Instead, this inital verion of ClusterBingo provides a way to organize the various machines and commands, as a way to automate the process. This should take a configuration JSON file, which specifies a list of IP addresses and the path to the RSA key, as well as a list of parameters and shell commands used to query for those parameters. 
+
+ClusterBingo 0.0 connects to the various machines via ssh and calls the desired commands. It tries to be smart about parsing the output into JSON format, by comparing it against a list of known regexs describing possible outputs and then calling an appropriate parsing method. 
+
+After assembling all the parameters over all the machines, it then can optionally compare it against a list of desired outcomes. It'll report back which ones are missing. 
+
+To do:
+1.Continue cleaning up/adding checks
+	a. Do it according to the mongodb production recommendation, as a default
+2. Check if hangs/asks for input
+3. Generate list of IP from a mongoD instance
+
+"""
 import json
 import subprocess
 import re
@@ -8,16 +27,74 @@ import os.path
 import threading
 import socket
 
-"""
-To do:
-1. Cleanup output
-2. More robust regex
-3. 
-?. Bernie and Luke to clean up?
-"""
+ssh = []
+commands = {
+	"filesystem": {
+		"command": "df -T"
+	},
+	"blockdev": {
+		"command": "sudo blockdev --report", 
+		"fields": ["RA", "Device"]
+	},
+	"journaling": {
+		"command": "sudo dumpe2fs /dev/xv* | grep journal"
+	},
+	"IOplanner": {
+		"command": "cat /sys/block/xvd*/queue/scheduler "
+	},
+	"ports": {
+		"command": "sudo lsof -i",
+		"fields": ["COMMAND", "USER"]
+	},
+	"java": {
+		"command": "java -version"
+	},
+	"python": {
+		"command": "python --version"
+	},
+	"largePages": {
+		"command": "cat /proc/meminfo | grep Huge"
+	},
+	"raid": {
+		"command": "cat /proc/mdstat"
+	},
+	"cpu": {
+		"command": "cat /proc/cpuinfo"
+	},
+	"ssd": {
+		"command": "cat /sys/block/*/queue/rotational"
+	},
+	"memory": {
+		"command": "cat /proc/meminfo"
+	},
+	"kernel": {
+		"command": "uname -r"
+	},
+	"atime": {
+		"command": "cat /etc/fstab | grep noatime"
+	},
+	"userProcessLimit": {
+		"command": "ulimit"
+	},
+	"spaceSwap": {
+			"command": "cat /proc/swaps"
+	}
+}
+desiredSettings = {
+	"ssd": "0",
+	"spaceSwap": {"Size": "[0-9]"},
+	"raid": {"Personalities": ["raid10"]},
+	"remoteFileSystems": "",
+	"kernel": ["3.10.*", "2.6.*"],
+	"atime": "noatime",
+	"userProcessLimit": "unlimited",
+	"largePages": {"HugePages_Total": "0"},
+	"blockdev": {"RA": ["32", "64", "128", "256"]},
+	"ntp":""
+}
 
-config = None		# This is going to hold the JSON file that describes all the configurations we need. 
 verbose = False		# A flag for whether we want to print out
+threaded = False
 destination = None	# This is going to hold the path to the output file we desired. If not specified by the user it'll just print instead
 machineSettings = {}		# This dict is going to be populated with all the settings we find and parse. We'll then check it against a list of desired settings and values
 
@@ -25,6 +102,8 @@ machineSettings = {}		# This dict is going to be populated with all the settings
 A helper method for printing
 """
 def output(text, err=0):
+	if threaded:
+		return
 	if verbose or err>0:
 		if isinstance(text, str):
 			sys.stdout.write( text )
@@ -54,16 +133,32 @@ def parseArguments():
 	parser.add_argument("--config", "-c", help="A JSON file that describes the config we're interested in, and the terminal commands to run to get thems")
 	parser.add_argument("--destination", "-d", help="Where we want to write the results to")
 	parser.add_argument("--verbose", "-v", help="Whether we want it to be verbose", action="store_true")
+	parser.add_argument("--threading", "-t", help="Whether we want it to be threaded", action="store_true")
 	args = parser.parse_args()
 
 	# And then read them, and set the global variables
-	global verbose, destination, config
+	global verbose, threaded, destination, ssh, commands, desiredSettings
 	verbose = args.verbose
+	threaded = args.threading
 	destination = args.destination
-	config = args.config if args.config != None else config
-	if isinstance(config, str):
-		config = json.load(open(config)) if os.path.isfile(config) else config
 
+	config = args.config
+	assert isinstance(config, str) or isinstance(config, unicode)
+	assert os.path.isfile(config)
+	config = json.load(open(config)) 
+	assert "ssh" in config
+	assert isinstance(config["ssh"], list)
+	assert len(config["ssh"]) > 0
+	for ip in config["ssh"]:
+		assert "ip" in ip
+		assert isinstance(ip["ip"], str) or isinstance(ip["ip"], unicode)
+	ssh = config["ssh"]
+	if "commands" in config:
+		assert isinstance(config["commands"], dict)
+		commands = config["commands"]
+	if "desiredSettings" in config:
+		assert isinstance(config["desiredSettings"], dict)
+		desiredSettings = config["desiredSettings"]
 
 """
 This takes in the output from a terminal command, and then tries to format it to JSON. 
@@ -92,7 +187,7 @@ def parseTerminalOutput(terminalOutput, fields=[]):
 	"""
 	def parseKeyValueList(terminalOutput, fields=[]):
 		parsedOutput = [line.split(":") for line in terminalOutput.split("\n")]
-		results = {line[0]: cleanup(line[1]) for line in parsedOutput if (len(line) > 1) and (line[0] in fields or len(fields) == 0)}
+		results = {cleanup(line[0]): cleanup(line[1]) for line in parsedOutput if (len(line) > 1) and (line[0] in fields or len(fields) == 0)}
 		return results
 
 	"""
@@ -116,7 +211,7 @@ def parseTerminalOutput(terminalOutput, fields=[]):
 		parsedOutput = [re.split("\s+", line) for line in terminalOutput.split("\n")]
 		if len(parsedOutput) > 1:
 			results = []
-			labels = parsedOutput[0]
+			labels = [cleanup(label) for label in parsedOutput[0]]
 			for i in range(1, len(parsedOutput)):
 				row = parsedOutput[i]
 				if len(row) > 1:
@@ -127,7 +222,7 @@ def parseTerminalOutput(terminalOutput, fields=[]):
 								result[labels[j]] = cleanup(row[j])
 					# result = {labels[j]:row[j] for j in range(len(row)) if (labels[j] in fields or len(fields) < 1) and len(labels[j])> 0}
 					results.append(result)
-			return results if len(results) > 1 else results[0]
+			return results
 
 	"""
 	terminalOutput is the string output by the terminal. This turns an output of the form:
@@ -145,7 +240,7 @@ def parseTerminalOutput(terminalOutput, fields=[]):
 		for line in parsedOutput:
 			if len(line) == 2:		
 				if line[0] in fields or  len(fields) == 0:
-					results[line[0]] = [cleanup(flag) for flag in re.split("[,\s+]", line[1]) if len(flag) > 0]
+					results[cleanup(line[0])] = [cleanup(flag) for flag in re.split("[,\s+]", line[1]) if len(flag) > 0]
 		if len(results) > 0:
 			return results
 
@@ -160,17 +255,22 @@ def parseTerminalOutput(terminalOutput, fields=[]):
 	if re.search(".+:(\s+\d+)", terminalOutput, re.MULTILINE):
 		output("Matches key value list\n")
 		results = parseKeyValueList(terminalOutput, fields)
+
 	elif re.search(".+:(\s+\S+)+", terminalOutput, re.MULTILINE):
 		output("Matches colon list\n")
 		results = parseColonListOutput(terminalOutput, fields)
-	elif re.search("[{}\"\[\]]", terminalOutput, re.MULTILINE):
+
+	elif re.search("[{}\"\[\]]", terminalOutput, re.MULTILINE) or terminalOutput.count(" ")<1:
 		output("Matches regular output\n")
 		results = parseRegularOutput(terminalOutput, fields)
-	elif re.search("[^:]+(\s+\S+)+", terminalOutput, re.MULTILINE):
+
+	elif re.search("[^:]+(\s+\S+)+", terminalOutput, re.MULTILINE) and terminalOutput.count("\n")>1:
 		output("Matches table output\n")
 		results = parseSpaceSeparatedTableOutput(terminalOutput, fields)
+
 	else:
-		output("Matches nothing. Can't understand output\n")
+		output("Matches nothing. Using regular output\n")
+		results = parseRegularOutput(terminalOutput, fields)
 	return results
 
 """
@@ -182,29 +282,25 @@ def connectAndParseInput(sshDict):
 
 	# Try and connect first, to ensure a valid IP address
 	ip = sshDict["ip"]
+	sshCommand = "ssh -t -i " + sshDict["rsa"] if "rsa" in sshDict else "ssh -t"
+	sshCommand += " " + ip 
 	try:
-		if ip.find("@") > 0:
-			host = ip[ip.find("@")+1:]
-			socket.gethostbyname(host)
-		else: 
-			return
-	except socket.error:
-		output(str("Error: Couldn't find the ip address " + ip + "\n"), 1)
+		subprocess.check_output((sshCommand + " ls"), stderr=open("app.log"), shell=True)
+	except subprocess.CalledProcessError as e:
+		output(str("Couldn't connect to " + ip + "\n"), 1)
 		return
 
 	# Initialize the return settings dict with the machine we're taking specs of
 	global machineSettings
-	machineSettings[ip] = {}
-	
+	machineSettings[ip] = {}	
+
 	# For every system setting we want to find
-	for systemSetting in config["commands"]:
-		output(str("Getting " + systemSetting + " info ... "))
-		commandInformation = config["commands"][systemSetting]
+	for systemSetting in commands:
+		output(str("Checking " + systemSetting + " ..."))
+		commandInformation = commands[systemSetting]
 		try:
 			# Build the shell command
-			shellCommand = "ssh -t -i " + sshDict["rsa"] if "rsa" in sshDict else "ssh -t -i"
-			shellCommand += " " + ip + " " + commandInformation["command"] 
-
+			shellCommand = sshCommand + " " + commandInformation["command"] 
 			# Run the command
 			terminalOutput = subprocess.check_output(shellCommand, stderr=open("app.log"), shell=True)
 			terminalOutput = terminalOutput.replace("\r", "")
@@ -218,7 +314,7 @@ def connectAndParseInput(sshDict):
 				machineSettings[ip][systemSetting] = results
 
 		except subprocess.CalledProcessError as e:
-			output(str("Couldn't read the " + name + "\n"), 1)
+			output(str("Couldn't read the " + systemSetting + "\n"), 1)
 
 
 """
@@ -239,13 +335,15 @@ This assembles the dict holding all the config.
 """
 def getSettings():
 
-	threads = [sshThread(ssh) for ssh in config["ssh"]]
+	threads = [sshThread(s) for s in ssh]
 
 	for thread in threads:
 		thread.start()
-
-	for thread in threads:
-		thread.join()
+		if not threaded:
+			thread.join()
+	if threaded:
+		for thread in threads:
+			thread.join()
 
 """
 This compares the populated machineSettings dict, which is populated with all the settings of the various machines we're interested in, and it compares it against a desiredSettings dict, which has key-value pairs for the settings and values we want, respectively. 
@@ -285,12 +383,11 @@ def compareSettings():
 		else:
 
 			# Case 3a: They're strings, in which case we can take advantage of regex's
-			if isinstance(setting, str) and isinstance(element, str):
-				return re.search(element, setting);
+			if (isinstance(setting, str) or isinstance(setting, unicode)) and (isinstance(element, str) or isinstance(element, unicode)):
+				return re.search( str(setting), str(element) );
 
 			# Case 3b: Just compare them
-			else:
-				return element == setting
+			return element == setting
 
 		# None of the comparisons returned true. Return false
 		return False
@@ -323,10 +420,15 @@ def compareSettings():
 		# All our comparisons failed. Return false.
 		return False
 
-	for field, setting in config["desiredSettings"].items():
-		for ip in machineSettings:
+	conflicts = {}
+	for ip in machineSettings:
+		conflicts[ip] = []
+		for field, setting in desiredSettings.items():
 			if not dictCompare(machineSettings[ip], field, setting):
-				print ip, " fails ", field
+				conflicts[ip].append(field)
+				output(str(ip + " fails " + field+ "\n"), 1)
+	with open("conflicts.json", 'w+') as outfile:
+		outfile.write(json.dumps(conflicts, indent=1))
 
 """
 This writes the output as a JSON to the desired destination
@@ -340,7 +442,12 @@ def outputSettings():
 			destination += ".json"
 		with open(destination, 'w+') as outfile:
 			outfile.write(json.dumps(machineSettings, indent=1))
+		output("Output to " + destination +"\n")
 
+def cleanup():
+	if threaded:
+		subprocess.call("reset", shell=True)
+	pass
 """
 The main line
 """
@@ -348,6 +455,7 @@ def main():
 	parseArguments()
 	initialize()
 	getSettings()
+	cleanup()
 	compareSettings()
 	outputSettings()
 	
