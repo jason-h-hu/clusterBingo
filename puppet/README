@@ -1,0 +1,24 @@
+
+README
+
+All the modules I'm using are based off of the production notes from MongoDB. (http://docs.mongodb.org/manual/administration/production-notes/) 
+
+Unfortunately, all the modules are really, really half baked. 
+
+MODULE 				DESCRIPTION
+mongodb 			Installs mongoDB
+os 					Ensures that it's a known operating system
+concurrency			Doesn't do anything at the moment
+journaling 			Doesn't do anything at the moment
+networking			Sets up a very weak firewall, allowing only default mongo ports. Broken. 
+hardware			Nothing at the moment
+swap				Creates a swap file, to ensure we have 2x swapspace of memory. 
+raid				Nothing
+nfs					Disables the NFS protocol, by default
+kernel
+	atime			This should disable atime,but doesn't do anything at the moment
+	filedescriptor	This ups the filedescriptor limit, but I don't think it works. 
+	hugepages 		This is supposed to disable huge pages but I think it also requires a restart?
+	numa 			???
+	readahead		This can set the readahead, but it can't find devices yet
+	ntp				This turns on ntp

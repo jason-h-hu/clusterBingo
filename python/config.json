@@ -1,0 +1,31 @@
+{
+	"ssh": [
+		{
+			"username": "ec2-user",
+			"ip": "ec2-54-191-65-186.us-west-2.compute.amazonaws.com",
+			"rsa": "/Users/Hu/Documents/Keys/JASONHU.cer"
+		},
+		{
+			"username": "ec2-user",
+			"ip": "ec2-54-191-65-213.us-west-2.compute.amazonaws.com",
+			"rsa": "/Users/Hu/Documents/Keys/JASONHU.cer"
+		},
+		{
+			"username": "ec2-user",
+			"ip": "ec2-54-191-65-229.us-west-2.compute.amazonaws.com",
+			"rsa": "/Users/Hu/Documents/Keys/JASONHU.cer"
+		},
+		{
+			"username": "ec2-user",
+			"ip": "ec2-54-191-65-189.us-west-2.compute.amazonaws.com",
+			"rsa": "/Users/Hu/Documents/Keys/JASONHU.cer"
+		}
+	],
+	"desiredSettings": {
+		"ssd": true,
+		"filesystem" : {"Type": "tmpfs"},
+		"blockdev": {"RA": ["32", "64", "128", "256"]}
+	},
+	"coreChecks": ["blockdev", "cpu", "filesystem", "ssd", "swapSpace"],
+	"output": "test.json"
+}
